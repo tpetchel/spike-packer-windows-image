@@ -17,7 +17,7 @@ stages:
     - script: |
         wget https://releases.hashicorp.com/packer/$(packer_version)/packer_$(packer_version)_linux_amd64.zip -O packer.zip
         unzip packer.zip
-        packer build \
+        ./packer build \
           -var 'client_id=$(client_id)' \
           -var 'client_secret=$(client_secret)' \
           -var 'tenant_id=$(tenant_id)' \
