@@ -1,12 +1,21 @@
 trigger:
 - master
 
+# Uncomment this to run the pipeline on a schedule.
+# schedules:
+# - cron: '0 3 * * 0'
+#   displayName: Deploy every Sunday at 3 A.M. UTC
+#   branches:
+#     include:
+#     - master
+#   always: true
+
 variables:
   packer_version: 1.4.5
 
 stages:
-- stage: 'BuildPacker'
-  displayName: 'Build Packer image'
+- stage: 'BuildVmImage'
+  displayName: 'Build Azure VM image'
   jobs: 
   - job: 'Packer'
     pool:
@@ -23,10 +32,44 @@ stages:
           -var 'client_secret=$(client_secret)' \
           -var 'tenant_id=$(tenant_id)' \
           -var 'subscription_id=$(subscription_id)' \
+          -var "managed_image_resource_group_name=$(managed_image_resource_group_name)" \
+          -var "managed_image_name=$(managed_image_name)" \
           windows.json
       displayName: "Run Packer"
-      env:
-        client_id: $(client_id)
-        client_secret: $(client_secret)
-        tenant_id: $(tenant_id)
-        subscription_id: $(subscription_id)
+    - task: AzureCLI@2
+      displayName: Publish to image gallery
+      inputs:
+        azureSubscription: Azure
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          GAL_NAME=$(GAL_NAME)
+          AZ_LOCATION=$(AZ_LOCATION)
+          TARGET_REGIONS=$(TARGET_REGIONS)
+
+          az group create --name $GAL_NAME-rg --location $AZ_LOCATION
+
+          az sig create \
+            --resource-group $GAL_NAME-rg \
+            --gallery-name $GAL_NAME \
+            --location $AZ_LOCATION
+
+          az sig image-definition create \
+            --resource-group $GAL_NAME-rg \
+            --gallery-name $GAL_NAME \
+            --gallery-image-definition $GAL_NAME-imgdef \
+            --publisher MicrosoftLearn \
+            --offer WindowsServer \
+            --sku 2019-Datacenter-Az-Pwsh \
+            --os-type Windows \
+            --location $AZ_LOCATION
+
+          az sig image-version create \
+            --resource-group $GAL_NAME-rg \
+            --location $AZ_LOCATION \
+            --gallery-name $GAL_NAME \
+            --gallery-image-definition $GAL_NAME-imgdef \
+            --gallery-image-version 1.0.0 \
+            --target-regions $TARGET_REGIONS \
+            --replica-count 2 \
+            --managed-image $IMG_URN
