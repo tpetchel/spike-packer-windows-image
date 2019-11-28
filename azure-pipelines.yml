@@ -46,6 +46,7 @@ stages:
           GAL_NAME=$(GAL_NAME)
           AZ_LOCATION=$(AZ_LOCATION)
           TARGET_REGIONS=$(TARGET_REGIONS)
+          IMG_URN=$(IMG_URN)
 
           az group create --name $GAL_NAME-rg --location $AZ_LOCATION
 

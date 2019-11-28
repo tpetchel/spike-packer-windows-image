@@ -209,6 +209,7 @@ From the Azure portal, grant permissions to the user or principal you want to al
     | GAL_NAME                          | `$GAL_NAME`            |
     | AZ_LOCATION                       | `$AZ_LOCATION`         |
     | TARGET_REGIONS                    | `$TARGET_REGIONS`      |
+    | IMG_URN                           | `$IMG_URN`             |
 
     Select the lock icon next to `client_secret` to encrypt its value.
 1. Create an Azure Resource Manager [service connection](https://docs.microsoft.com/azure/devops/pipelines/library/connect-to-azure?view=azure-devops) named *Azure* that uses your service principal's details. (Select the **Service principal (manual)** option)
